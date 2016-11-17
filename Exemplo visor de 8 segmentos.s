@@ -6,9 +6,9 @@
 .equ SWI_CheckBlack, 0x202      ;Verifica se os botões foram apertados, caso R0 seja 1, é o botão da direita, caso seja 2 é o da esquerda
 .equ SWI_CheckBlue, 0x203       ;Verifica se os botões azuis foram apertados, se não forem coloca 0 em R0
 .equ SWI_DRAW_STRING, 0x204
-.equ SWI_DRAW_INT, 0x205        ;Desenha um inteiro no display, desde que colocado em um registrador
+.equ SWI_DRAW_INT, 0x205        ;Comando desenha um int na tela cujo o endereço está em R2 e a posição do número está em r0
 .equ SWI_CLEAR_DISPLAY,0x206
-.equ SWI_DRAW_CHAR, 0x207       ;Comando desenha o char na tela cujo o endereço está em R0
+.equ SWI_DRAW_CHAR, 0x207       ;Comando desenha o char na tela cujo o endereço está em R2 e a posição da letra está em r0
 .equ SWI_CLEAR_LINE, 0x208      ;Apaga a linha contida em R0 e a seleciona para imprimir novos caracteres
 .equ SWI_EXIT, 0x11
 .equ SWI_GetTicks, 0x6d         ;Pega os ticks de execução do sistema
@@ -55,12 +55,13 @@
 .equ DISPLAY_9, SEG_A | SEG_B | SEG_C | SEG_D | SEG_F | SEG_G
 .equ DISPLAY_0, SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_G
 
+.equ ALL_LEDS, LEFT_LED | RIGHT_LED
+
 .equ DAY_MEMORY_ADDRESS, 0x0
 .equ MONTH_MEMORY_ADDRESS, 0x1
 .equ ALARM_HOUR_ADDRESS, 0x2
 .equ ALARM_MINUTE_ADDRESS, 0x3
 .equ YEAR_MEMORY_ADDRESS, 0x4
-
 
 @Usar r1 para armazenar enderecos de memoria
 @A interface via SWI se comunica via R0

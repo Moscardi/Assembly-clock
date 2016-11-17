@@ -8,7 +8,7 @@
 .equ SWI_DRAW_STRING, 0x204
 .equ SWI_DRAW_INT, 0x205        ;Desenha um inteiro no display, desde que colocado em um registrador
 .equ SWI_CLEAR_DISPLAY,0x206
-.equ SWI_DRAW_CHAR, 0x207       ;Comando desenha o char na tela cujo o endereço está em R0
+.equ SWI_DRAW_CHAR, 0x207       ;Comando desenha o char na tela cujo o endereço está em R2 e a posição da letra está em r0
 .equ SWI_CLEAR_LINE, 0x208      ;Apaga a linha contida em R0 e a seleciona para imprimir novos caracteres
 .equ SWI_EXIT, 0x11
 .equ SWI_GetTicks, 0x6d         ;Pega os ticks de execução do sistema
@@ -63,10 +63,8 @@
 .equ ALARM_MINUTE_ADDRESS, 0x3
 .equ YEAR_MEMORY_ADDRESS, 0x4
 
-
 @Usar r1 para armazenar enderecos de memoria
 @A interface via SWI se comunica via R0
-
 
 @ aqui NESSE exemplo usarei R8 e R9 como controlador
 
