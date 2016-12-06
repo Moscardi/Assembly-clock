@@ -271,6 +271,10 @@ sistema:
       beq verifyKeyPad_return
     @aqui ficará os casos onde ocorrerá as alterações de dados
     cmp r0, #0
+    cmpne r0, #8
+    cmpne r0, #128
+    cmpne r0, #2048
+    cmpne r0, #32768
       beq verifyKeyPad_return
       ldr r3, =system
       add r3, r3, #6
