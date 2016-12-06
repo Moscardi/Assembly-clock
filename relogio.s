@@ -129,7 +129,7 @@ sistema:
         moveq r4, #18                       ;if (r4 == 1)
         movne r4, #4                        ;if (r4 != 1)
         strb r4, [r3]
-        beq loadDysplayDate                 ;if (r4 == 1)
+        beq loadDisplayDate                 ;if (r4 == 1)
         bne loadDysplayAlarm                ;if (r4 != 1)
     relogioChange_Trace:
       ldr r9, =relogioChange_updatePreviousValue
@@ -164,7 +164,7 @@ sistema:
       cmp r4, #1
         bne incrementDate_return          ;if (r4 != 1)
         ldreq r9, =incrementDate_return   ;if (r4 == 1)
-        beq loadDysplayDate               ;if (r4 == 1)
+        beq loadDisplayDate               ;if (r4 == 1)
     incrementDate_return:
 
   @aqui verifica se os botões direita/esquerda foram pressionados
@@ -350,7 +350,7 @@ drawTraceOnDysplay:
     b drawTraceOnDysplay_Loop
 
 @função desenha a data na tela
-loadDysplayDate:
+loadDisplayDate:
   @coloca X e Y em 0
   mov r0, #0
   mov r1, #0
@@ -674,6 +674,216 @@ loadDysplayAlarm:
 
 @aqui ficará a função que atualiza os valores de data
 updateDate:
+  mov r8, r9
+  ldr r3, =system
+  ldrb r4, [r3]
+  cmp r4, #2
+  cmpne r4, #5
+  cmpne r4, #10
+  cmpne r4, #13
+  cmpne r4, #16
+    beq updateDate_return
+
+  ldr r3, =system
+  ldrb r4, [r3]
+  cmp r4, #6
+  cmpne r4, #7
+  cmpne r4, #8
+  cmpne r4, #9
+   beq updateDate_year
+
+  ldr r3, =system
+  ldrb r4, [r3]
+  cmp r4, #1
+  cmpne r4, #4
+  cmpne r4, #12
+  cmpne r4, #15
+  cmpne r4, #18
+    beq updateDate_unidades
+
+  @caso não pule então as posições a serem alteradas são respectivo a dezenas
+
+  updateDate_dezenas:
+    ldr r9, =updateDate_dezenas_return
+    ldr r3, =system
+    ldrb r4, [r3]
+    ldr r3, =data
+    cmp r4, #3
+      addeq r3, r3, #1
+    cmp r4, #11
+      addeq r3, r3, #6
+    cmp r4, #14
+      addeq r3, r3, #7
+    cmp r4, #17
+      addeq r3, r3, #8
+    ldrb r5, [r3]
+    ldr r3, =return
+    strb r5, [r3]
+    b retornaUnidades
+
+    updateDate_dezenas_return:
+      ldr r3, =system
+      add r3, r3, #6
+      ldrb r4, [r3]
+      cmp r4, #1
+        moveq r4, #10
+      cmp r4, #2
+        moveq r4, #20
+      cmp r4, #3
+        moveq r4, #30
+      cmp r4, #4
+        moveq r4, #40
+      cmp r4, #5
+        moveq r4, #50
+      cmp r4, #6
+        moveq r4, #60
+      cmp r4, #7
+        moveq r4, #70
+      cmp r4, #8
+        moveq r4, #80
+      cmp r4, #9
+        moveq r4, #90
+      ldr r3, =return
+      ldrb r5, [r3]
+      add r4, r4, r5
+      @nessa etapa r4 irá conter a nova dezena a ser inserida
+      ldr r3, =system
+      ldrb r5, [r3]
+      ldr r3, =data
+      cmp r5, #3
+        addeq r3, r3, #1
+      cmp r5, #11
+        addeq r3, r3, #6
+      cmp r5, #14
+        addeq r3, r3, #7
+      cmp r5, #17
+        addeq r3, r3, #8
+      @aqui r3 terá o endereço do array data onde será inserido o novo número contido em r4
+      strb r4, [r3]
+
+      b updateDate_verification
+
+  updateDate_year:
+    ldr r3, =system
+    add r3, r3, #6
+    ldrb r4, [r3]
+    @a partir daqui r4 conterá o valor pressionado
+    ldr r3, =system
+    ldrb r5, [r3]
+    @a partir daqui r5 conterá a posição do traço de lateração
+    ldr r3, =data
+    cmp r5, #6
+      addeq r3, r3, #2
+    cmp r5, #7
+      addeq r3, r3, #3
+    cmp r5, #8
+      addeq r3, r3, #4
+    cmp r5, #9
+      addeq r3, r3, #5
+    @a partir daqui r3 contem o endereço para inserir o novo algarismo do ano
+    strb r4, [r3]
+
+    b updateDate_verification
+
+  updateDate_unidades:
+    ldr r9, =updateDate_unidades_return
+    ldr r3, =system
+    ldrb r4, [r3]
+    @a partir daqui r4 contem a localização do traço alterador
+    ldr r3, =data
+    cmp r4, #4
+      addeq r3, r3, #1
+    cmp r4, #12
+      addeq r3, r3, #6
+    cmp r4, #15
+      addeq r3, r3, #7
+    cmp r4, #18
+      addeq r3, r3, #8
+    @a partir daqui r3, contém a localiza do array data que o usuário quer alterar
+    ldrb r5, [r3]
+    ldr r3, =return
+    strb r5, [r3]
+
+    b retornaDezenas
+
+    updateDate_unidades_return:
+      ldr r3, =return
+      ldrb r4, [r3]
+      ldr r3, =system
+      add r3, r3, #6
+      ldrb r5, [r3]
+      add r4, r4, r5
+      @a partir daqui r4 armazena o novo valor a ser inserido
+      ldr r3, =system
+      ldrb r5, [r3]
+      @a partir daqui r5 guarda a localização do traço alterador
+      ldr r3, =data
+      cmp r5, #4
+        addeq r3, r3, #1
+      cmp r5, #12
+        addeq r3, r3, #6
+      cmp r5, #15
+        addeq r3, r3, #7
+      cmp r5, #18
+        addeq r3, r3, #8
+      @a partir daqui r3 guarda a localização do array data o qual se deseja modificar
+      strb r4, [r3]
+
+      b updateDate_verification
+
+  updateDate_verification:
+    ldr r3, =data
+    add r3, r3, #8
+    ldrb r4, [r3]
+    cmp r4, #60
+      movge r4, #59
+    strb r4, [r3]
+    sub r3, r3, #1
+    ldrb r4, [r3]
+    cmp r4, #60
+      movge r4, #59
+    strb r4, [r3]
+    sub r3, r3, #1
+    ldrb r4, [r3]
+    cmp r4, #24
+      movge r4, #23
+    ldr r3, =data
+    add r3, r3, #1
+    ldrb r4, [r3]
+    cmp r4, #13
+      movge r4, #12
+    cmp r4, #0
+      moveq r4, #1
+    strb r4, [r3]
+
+    ldr r9, =updateDate_verification_Day
+    b verifyYear
+
+    updateDate_verification_Day:
+      ldr r3, =data
+      add r3, r3, #1
+      ldrb r5, [r3]
+      @a partir daqui r5 guarda o mês atual
+      ldr r3, =month
+      sub r5, r5, #1
+      add r3, r3, r5
+      ldrb r6, [r3]
+      @a partir daqui r6 guarda o limiete de dia do mês atual e r5 guarda o mês atual -1
+      ldr r3, =data
+      ldrb r4, [r3]
+      @a partir daqui r4 guarda o dia atual
+      cmp r4, r6
+        movgt r4, r6
+      cmp r4, #0
+        moveq r4, #1
+      strb r4, [r3]
+
+      ldr r9, =updateDate_return
+      b loadDisplayDate
+
+  updateDate_return:
+    mov r9, r8
+    b goTo
 
 @aqui ficará a função que atualiza os valores do alarme
 updateAlarm:
