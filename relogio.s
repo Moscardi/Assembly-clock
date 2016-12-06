@@ -847,6 +847,7 @@ updateDate:
     ldrb r4, [r3]
     cmp r4, #24
       movge r4, #23
+    strb r4, [r3]
     ldr r3, =data
     add r3, r3, #1
     ldrb r4, [r3]
