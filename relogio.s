@@ -92,8 +92,8 @@ sistema:
     sleep_loop:
       swi SWI_GetTicks
       sub r5, r0, r4
-      cmp r5, #100
-        blt sleep_loop    ;if (r5 < 250)
+      cmp r5, #75
+        blt sleep_loop    ;if (r5 < 100)
 
   @aqui irá incrementar a variável que conta os 10 cloks até incrementar o horário
   incrementDataClock:
