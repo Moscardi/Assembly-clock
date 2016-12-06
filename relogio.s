@@ -57,7 +57,7 @@
 
 .equ ALL_LEDS, LEFT_LED | RIGHT_LED
 @data: [dia][mês][ano-mil][ano-centena][ano-dezena][ano-unidade][horas][minutos][segundos]
-data: .byte 31, 12, 1, 9, 9, 9, 23, 59, 50
+data: .byte 01, 01, 2, 0, 0, 0, 12, 00, 00
 @alarm: [Hora][Minuto][Segundo]
 alarm: .byte 0, 0, 0
 @month(limite de dias): [janeiro][fevereiro][maio][março][abril][junho][julho][agosto][setembro][outubro][novembro][dezembro]
