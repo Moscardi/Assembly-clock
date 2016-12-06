@@ -62,8 +62,8 @@ data: .byte 31, 12, 1, 9, 9, 9, 23, 59, 50
 alarm: .byte 0, 0, 0
 @month(limite de dias): [janeiro][fevereiro][maio][março][abril][junho][julho][agosto][setembro][outubro][novembro][dezembro]
 month: .byte 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-@system(dados do sistema): [posição do marcador], [tempo restante de alarme], [modo do relogio], [contador do sistema], [ultimo modo], [limite do marcador]
-system: .byte 0, 0, 1, 0, 0, 18
+@system(dados do sistema): [posição do marcador], [tempo restante de alarme], [modo do relogio], [contador do sistema], [ultimo modo], [limite do marcador], [número apertado]
+system: .byte 0, 0, 1, 0, 0, 18, 0
 @return: [retorna valores de funções]
 return: .byte 0
 
@@ -270,6 +270,38 @@ sistema:
       strb r4, [r3]
       beq verifyKeyPad_return
     @aqui ficará os casos onde ocorrerá as alterações de dados
+    cmp r0, #0
+      beq verifyKeyPad_return
+      ldr r3, =system
+      add r3, r3, #6
+      cmp r0, #1
+        moveq r4, #1
+      cmp r0, #2
+        moveq r4, #2
+      cmp r0, #4
+        moveq r4, #3
+      cmp r0, #16
+        moveq r4, #4
+      cmp r0, #32
+        moveq r4, #5
+      cmp r0, #64
+        moveq r4, #6
+      cmp r0, #256
+        moveq r4, #7
+      cmp r0, #512
+        moveq r4, #8
+      cmp r0, #1024
+        moveq r4, #9
+      cmp r0, #8192
+        moveq r4, #0
+      strb r4, [r3]
+      ldr r3, =system
+      add r3, r3, #2
+      ldr r9, =verifyKeyPad_return
+      ldrb r4, [r3]
+      cmp r4, #1
+        bne updateAlarm
+        beq updateDate
     verifyKeyPad_return:
 
   b sistema
@@ -615,7 +647,7 @@ loadDysplayAlarm:
     movlt r2, #0        ;if (r4 < 10)
     swilt SWI_DRAW_INT    ;if (r4 < 10)
     addlt r0, r0, #1      ;if (r4 < 10)
-    movge r2, r4          ;if (r4 >= 10)
+    mov r2, r4          ;if (r4 >= 10)
     swi SWI_DRAW_INT
     addge r0, r0, #2      ;if (r4 >= 10)
     addlt r0, r0, #1      ;if (r4 < 10)
@@ -628,7 +660,7 @@ loadDysplayAlarm:
     movlt r2, #0        ;if (r4 < 10)
     swilt SWI_DRAW_INT    ;if (r4 < 10)
     addlt r0, r0, #1      ;if (r4 < 10)
-    movge r2, r4          ;if (r4 >= 10)
+    mov r2, r4
     swi SWI_DRAW_INT
     addge r0, r0, #2      ;if (r4 >= 10)
     addlt r0, r0, #1      ;if (r4 < 10)
@@ -639,3 +671,137 @@ loadDysplayAlarm:
       swilt SWI_DRAW_CHAR         ;if (r4 < 16)
       addlt r0,r0, #1             ;if (r4 < 16)
       blt loadDysplayAlarm_Loop   ;if (r4 < 16)
+
+@aqui ficará a função que atualiza os valores de data
+updateDate:
+
+@aqui ficará a função que atualiza os valores do alarme
+updateAlarm:
+  ldr r3, =system
+  ldrb r4, [r3]
+  mov r8, r9
+  cmp r4, #2
+    beq updateAlarm_return
+  updateAlarm_dezenas:
+    cmp r4, #0
+    cmpne r4, #3
+      bne updateAlarm_unidades
+    ldr r3, =alarm
+    cmp r4, #0
+      addne r3, r3, #1
+    ldrb r4, [r3]
+    ldr r3, =return
+    strb r4, [r3]
+    ldr r9, =updateAlarm_dezenas_retorno
+    b retornaUnidades
+
+    updateAlarm_dezenas_retorno:
+      ldr r3, =system
+      add r3, r3, #6
+      ldrb r4, [r3]
+      cmp r4, #1
+        moveq r4, #10
+      cmp r4, #2
+        moveq r4, #20
+      cmp r4, #3
+        moveq r4, #30
+      cmp r4, #4
+        moveq r4, #40
+      cmp r4, #5
+        moveq r4, #50
+      cmp r4, #6
+        moveq r4, #60
+      cmp r4, #7
+        moveq r4, #70
+      cmp r4, #8
+        moveq r4, #80
+      cmp r4, #9
+        moveq r4, #90
+
+      ldr r3, =return
+      ldrb r5, [r3]
+      add r4, r4, r5
+      ldr r3, =system
+      ldrb r5, [r3]
+      ldr r3, =alarm
+      cmp r5, #0
+        addne r3, r3, #1
+
+      strb r4, [r3]
+      b updateAlarm_verification
+
+  updateAlarm_unidades:
+    ldr r3, =system
+    ldrb r4, [r3]
+    ldr r9, =updateAlarm_unidades_retorno
+    ldr r3, =alarm
+    cmp r4, #1
+      addne r3, r3, #1
+    ldrb r5, [r3]
+    ldr r3, =return
+    strb r5, [r3]
+    b retornaDezenas
+
+    updateAlarm_unidades_retorno:
+      ldr r3, =return
+      ldrb r4, [r3]
+      ldr r3, =system
+      add r3, r3, #6
+      ldrb r5, [r3]
+      add r4, r4, r5
+      ldr r3, =system
+      ldrb r5, [r3]
+      ldr r3, =alarm
+      cmp r5, #1
+        addne r3, r3, #1
+      strb r4, [r3]
+
+  updateAlarm_verification:
+    ldr r3, =alarm
+    ldrb r4, [r3]
+    cmp r4, #24
+      movge r4, #23
+    cmp r4, #0
+      movlt r4, #0
+    strb r4, [r3]
+    add r3, r3, #1
+    ldrb r4, [r3]
+    cmp r4, #60
+      movge r4, #59
+    cmp r4, #0
+      movlt r4, #0
+    strb r4, [r3]
+    ldr r9, =updateAlarm_Trace
+    b loadDysplayAlarm
+    updateAlarm_Trace:
+      ldr r9, =updateAlarm_return
+      b drawTraceOnDysplay
+  updateAlarm_return:
+    mov r9, r8
+    b loadDysplayAlarm
+
+@função retorna as dezenas de um valor (usa return)
+retornaDezenas:
+  ldr r3, =return
+  ldrb r4, [r3]
+  mov r5, #0
+  retornaDezenas_Loop:
+    cmp r4, #0
+      sublt r5, r5, #10
+      subge r4, r4, #10
+      addge r5, r5, #10
+      strb r5, [r3]
+      blt goTo
+      bge retornaDezenas_Loop
+
+@função retorna as unidades (usa return)
+retornaUnidades:
+  ldr r3, =return
+  ldrb r4, [r3]
+  retornaUnidades_Loop:
+    cmp r4, #0
+      addlt r4, r4, #10
+      subge r4, r4, #10
+      strb r4,[r3]
+      blt goTo
+      bge retornaUnidades_Loop
